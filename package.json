@@ -1,0 +1,11 @@
+{
+  "name": "ayusync",
+  "version": "1.0.0",
+  "description": "Ayusync - Your Data. Your Insight. Your Control",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Karan Purohit",
+  "license": "ISC"
+}

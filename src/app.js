@@ -1,15 +1,19 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 
-const app = express();
 import dbConnect from "./config/dbConnect.js";
 import authRouters from "./routes/authRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+
+const app = express();
+dotenv.config();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/", authRouters);
+app.use("/", profileRoutes);
 
 dbConnect()
   .then(() => {

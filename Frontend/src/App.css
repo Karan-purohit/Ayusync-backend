@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@plugin "daisyui";
+* {
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+:root {
+  --daibeties-blue: #007cbd;
+}

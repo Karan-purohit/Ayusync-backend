@@ -23,7 +23,6 @@ router.post("/signup", async (req, res) => {
       email,
       password: passwordHash,
     });
-    console.log("Saving user:", savedUser);
     await savedUser.save();
     res.status(200).json({ message: "User created successfully" });
   } catch (error) {

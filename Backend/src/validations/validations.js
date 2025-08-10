@@ -6,6 +6,7 @@ import {
   insulinTypesEnum,
   typeOfDiabetesEnum,
 } from "../models/user.js";
+import { mealTypeEnum } from "../models/log.js";
 
 export const validateuserWhileSignup = (req) => {
   const { firstName, lastName, email, password } = req.body;
@@ -48,24 +49,25 @@ export const validateUserWhileSignin = (req) => {
 };
 
 export const validateProfileUpdate = (req) => {
+  const { user, body } = req;
   const {
-    firstName,
-    lastName,
+    firstName = user.firstName,
+    lastName = user.lastName,
     email,
     password,
-    age,
-    gender,
-    typeOfDiabetes,
-    takesInsulin,
-    insulinTypes,
-    dietType,
-    activityLevel,
-  } = req.body;
+    age = user.age,
+    gender = user.gender,
+    typeOfDiabetes = user.typeOfDiabetes,
+    takesInsulin = user.takesInsulin,
+    insulinTypes = user.insulinTypes,
+    dietType = user.dietType,
+    activityLevel = user.activityLevel,
+  } = body;
 
   let validationError = { isValid: false, error: "" };
 
   // Block email/password updates
-  if (email || password) {
+  if (email !== undefined || password !== undefined) {
     validationError.error =
       "Email and password cannot be updated through profile update";
   }
@@ -73,7 +75,7 @@ export const validateProfileUpdate = (req) => {
   // Check for required fields
   else if (
     [age, gender, typeOfDiabetes, dietType, activityLevel].some(
-      (field) => field == null
+      (field) => field === undefined
     ) ||
     takesInsulin === undefined
   ) {
@@ -131,4 +133,14 @@ export const validateProfileUpdate = (req) => {
   }
 
   return validationError;
+};
+
+export const validateLogCreation = (req) => {
+  const { date, mealType } = req.body;
+  if (!date || !mealType) {
+    return { isValid: false, error: "Date and meal type are required" };
+  } else if (!mealTypeEnum.includes(mealType)) {
+    return { isValid: false, error: "Invalid meal type" };
+  }
+  return { isValid: true };
 };

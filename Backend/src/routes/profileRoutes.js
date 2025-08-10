@@ -41,7 +41,10 @@ router.patch("/profile", userAuth, async (req, res) => {
         gender,
         typeOfDiabetes,
         takesInsulin,
-        insulinTypes: takesInsulin ? insulinTypes : [],
+        insulinTypes:
+          takesInsulin || req.user.takesInsulin
+            ? insulinTypes || req.user.insulinTypes
+            : [],
         medications,
         dietType,
         activityLevel,

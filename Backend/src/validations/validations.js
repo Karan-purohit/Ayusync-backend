@@ -67,7 +67,7 @@ export const validateProfileUpdate = (req) => {
   let validationError = { isValid: false, error: "" };
 
   // Block email/password updates
-  if (email !== undefined || password !== undefined) {
+  if (email || password) {
     validationError.error =
       "Email and password cannot be updated through profile update";
   }
@@ -104,7 +104,7 @@ export const validateProfileUpdate = (req) => {
   // takesInsulin + insulinTypes logic
   else if (typeof takesInsulin !== "boolean") {
     validationError.error = "takesInsulin must be a boolean value";
-  } else if (takesInsulin === false && insulinTypes !== undefined) {
+  } else if (takesInsulin === false && !insulinTypes) {
     validationError.error =
       "Insulin types should not be provided if takesInsulin is false";
   } else if (

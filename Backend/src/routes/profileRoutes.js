@@ -48,6 +48,7 @@ router.patch("/profile", userAuth, async (req, res) => {
         medications,
         dietType,
         activityLevel,
+        isProfileComplete: true,
       },
       { new: true }
     );

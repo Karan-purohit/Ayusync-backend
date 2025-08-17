@@ -24,7 +24,13 @@ router.post("/signup", async (req, res) => {
       password: passwordHash,
     });
     await savedUser.save();
-    res.status(200).json({ message: "User created successfully" });
+    const token = jwt.sign({ userid: savedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    res.cookie("token", token);
+    res
+      .status(200)
+      .json({ message: "User created successfully", user: savedUser });
   } catch (error) {
     res.status(400).json({ error: error.message || "User signup failed" });
   }
@@ -49,7 +55,7 @@ router.post("/signin", async (req, res) => {
       expiresIn: "1d",
     });
     res.cookie("token", token);
-    res.status(200).json({ message: "User signed in successfully" });
+    res.status(200).json({ message: "User signed in successfully", user });
   } catch (error) {
     res.status(400).json({ error: error.message || "User signin failed" });
   }

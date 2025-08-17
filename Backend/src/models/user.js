@@ -97,6 +97,10 @@ const userSchema = new mongoose.Schema(
     lastLoggedAt: {
       type: Date,
     },
+    isProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

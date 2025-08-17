@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { validateForm } from "./utils/AuthValidations";
+import { authenticateUser } from "./utils/AuthenicateUser";
+import { useAuth } from "../../context/AuthContext";
 
 const AuthPage = () => {
   const initialUserData = {
@@ -7,10 +12,13 @@ const AuthPage = () => {
     email: "",
     password: "",
   };
-
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [isSignIn, setIsSignIn] = useState(true);
   const [userData, setUserData] = useState(initialUserData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const AuthState = isSignIn ? "Sign In" : "Sign Up";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,63 +29,28 @@ const AuthPage = () => {
   const handlePageChange = () => {
     setIsSignIn((prev) => !prev);
     setUserData(initialUserData);
-    setErrors({});
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!isSignIn) {
-      if (!userData.firstName.trim())
-        newErrors.firstName = "First name is required";
-      if (!userData.lastName.trim())
-        newErrors.lastName = "Last name is required";
-    }
-
-    if (!userData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userData.email)) {
-      newErrors.email = "Invalid email address";
-    }
-
-    if (!userData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (userData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrorMessage("");
   };
 
   const handleAuth = async () => {
-    if (!validateForm()) return;
-
-    if (isSignIn) {
-      try {
-        const user = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/signin`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: userData.email,
-              password: userData.password,
-            }),
-          }
-        );
-        const response = await user.json();
-        if (response.error) {
-          throw new Error(response.error);
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          setErrors({ password: err.message });
-        }
+    const newErrors = validateForm(userData, isSignIn);
+    setErrorMessage(newErrors);
+    if (newErrors.length > 0) return;
+    setLoading(true);
+    try {
+      const response = await authenticateUser({
+        userData,
+        isSignIn,
+        apiBaseUrl: import.meta.env.VITE_API_BASE_URL,
+      });
+      setUser(response.user);
+      navigate("/profile");
+    } catch (err) {
+      if (err instanceof Error) {
+        setErrorMessage(err.message);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,18 +67,16 @@ const AuthPage = () => {
       <input
         type={type}
         id={id}
-        className={`input w-full ${errors[id] ? "input-error" : ""}`}
+        className="input w-full"
         placeholder={placeholder || label}
         value={userData[id]}
         onChange={handleInputChange}
       />
-      {errors[id] && <p className="text-red-500 text-sm">{errors[id]}</p>}
     </>
   );
 
   return (
     <div className="flex h-screen">
-      {/* Left Panel */}
       <div className="w-1/2 bg-[var(--daibeties-blue)] text-white flex items-center justify-center p-8">
         <div className="text-center lg:text-left max-w-md">
           <h1 className="text-5xl font-bold leading-tight">
@@ -118,7 +89,6 @@ const AuthPage = () => {
         </div>
       </div>
 
-      {/* Right Panel */}
       <div className="flex flex-col justify-center items-center w-1/2 p-8">
         <h1 className="text-center text-4xl mb-6">{AuthState}</h1>
         <fieldset className="fieldset w-full max-w-sm">
@@ -130,8 +100,16 @@ const AuthPage = () => {
           )}
           {renderInput("email", "Email", "email")}
           {renderInput("password", "Password", "password")}
+
+          {errorMessage.length > 0 && (
+            <div role="alert" className="alert alert-error alert-soft mt-5">
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           <button className="btn btn-neutral my-4 w-full" onClick={handleAuth}>
-            {AuthState}
+            {AuthState}{" "}
+            {loading && <span className="loading loading-spinner"></span>}
           </button>
           <div className="text-center">
             {isSignIn ? "Don't have an account? " : "Already have an account? "}
